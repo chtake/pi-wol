@@ -1,0 +1,10 @@
+.clr-footer {
+  background: rgb(255, 255, 255);
+  height: 40px;
+  line-height: 40px;
+  font-size: small;
+  text-align: right;
+  padding: 0 24px;
+  border-top: rgb(215, 215, 215) solid 2px;
+  border-bottom: rgb(215, 215, 215) solid 2px;
+}

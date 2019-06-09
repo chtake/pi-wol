@@ -1,0 +1,77 @@
+<clr-alert [clrAlertType]="notification.type" [hidden]="!notification.message">
+  <div clr-alert-item class="alert-item">
+        <span class="alert-text">
+            {{notification.message}}
+        </span>
+  </div>
+</clr-alert>
+<h2>Hosts</h2>
+
+<div class="clr-row">
+  <div class="clr-col-lg-12 clr-col-xl-12 clr-col-md-12 clr-col-12">
+    <div class="card">
+      <div class="card-header">
+        Existing hosts
+      </div>
+      <div class="card-block">
+        <div class="card-text">
+          <clr-datagrid *ngIf="!isSmallScreen">
+            <clr-dg-column>Hostname</clr-dg-column>
+            <clr-dg-column>IP Address</clr-dg-column>
+            <clr-dg-column>Status</clr-dg-column>
+            <clr-dg-column></clr-dg-column>
+
+            <clr-dg-row *clrDgItems="let host of hosts"  class="datagrid-compact">
+              <clr-dg-action-overflow>
+                <button class="action-item" (click)="onEdit(host)">Edit</button>
+                <button class="action-item" (click)="onDelete(host)">Delete</button>
+              </clr-dg-action-overflow>
+              <clr-dg-cell>{{host.hostname}}</clr-dg-cell>
+              <clr-dg-cell>{{host.ipAddress}}</clr-dg-cell>
+              <clr-dg-cell>
+                <span class="grid-color-square"
+                      [style.backgroundColor]="(host.status === hostStatus.online) ? 'green' : 'grey'"></span>
+              </clr-dg-cell>
+              <clr-dg-cell>
+                <a class="btn btn-outline btn-sm" (click)="wakeUp(host)">wake up</a>
+              </clr-dg-cell>
+            </clr-dg-row>
+
+            <clr-dg-footer>{{hosts.length}} {{ (hosts.length === 1) ? 'host' : 'hosts'}}</clr-dg-footer>
+          </clr-datagrid>
+          <clr-datagrid *ngIf="isSmallScreen">
+            <clr-dg-column [style.min-width.px]="0"></clr-dg-column>
+            <clr-dg-column>Hostname</clr-dg-column>
+            <clr-dg-column [style.min-width.px]="0"></clr-dg-column>
+            <clr-dg-row *clrDgItems="let host of hosts" class="datagrid-compact">
+              <clr-dg-cell [style.min-width.px]="0">
+                    <span class="grid-color-square" [style.backgroundColor]="(host.status === hostStatus.online) ? 'green' : 'grey'"></span>
+              </clr-dg-cell>
+              <clr-dg-cell>{{host.hostname}}</clr-dg-cell>
+              <clr-dg-cell [style.min-width.px]="0">
+                <a class="btn btn-outline btn-sm btn-icon" (click)="wakeUp(host)"><clr-icon shape="power"></clr-icon></a>
+              </clr-dg-cell>
+            </clr-dg-row>
+
+            <clr-dg-footer>{{hosts.length}} {{ (hosts.length === 1) ? 'host' : 'hosts'}}</clr-dg-footer>
+          </clr-datagrid>
+        </div>
+      </div>
+      <div class="card-footer">
+        <button class="btn btn-primary btn-sm" [routerLink]="['/admin', 'hosts', 'add']">Add host</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+<clr-modal [(clrModalOpen)]="deletionModal.open">
+  <h3 class="modal-title">Confirm</h3>
+  <div class="modal-body">
+    <p>Delete host <b>{{deletionModal.host.hostname}}</b>?</p>
+  </div>
+  <div class="modal-footer">
+    <button type="button" class="btn btn-outline" (click)="deletionModal.open = false">Cancel</button>
+    <button type="button" class="btn btn-danger" (click)="onDeleteConfirm()">Delete</button>
+  </div>
+</clr-modal>

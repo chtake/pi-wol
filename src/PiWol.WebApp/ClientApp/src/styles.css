@@ -1,0 +1,8 @@
+.grid-color-square {
+  display: inline-block;
+  vertical-align: text-bottom;
+  height: 14px;
+  width: 14px;
+  border: 1px solid #000000;
+  border-radius: 2px;
+}

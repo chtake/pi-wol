@@ -1,0 +1,47 @@
+<clr-alert [clrAlertType]="notification.type" [hidden]="!notification.message">
+  <div class="alert-item" clr-alert-item>
+        <span class="alert-text">
+            {{notification.message}}
+        </span>
+  </div>
+</clr-alert>
+
+<h2>Add ip restriction</h2>
+
+
+<form clrForm (ngSubmit)="onSubmit()" #form="ngForm">
+  <div class="clr-row">
+    <div class="clr-col-lg-12 clr-col-md-12 clr-col-12">
+
+      <div class="card">
+        <div class="card-header">Grant access</div>
+        <div class="card-block">
+          <div class="card-text">
+            <clr-input-container>
+              <label class="clr-col-12 clr-col-md-2">Network</label>
+              <input class="clr-col-12 clr-col-md-10" clrInput type="text"
+                     required
+                     appIsValidNetwork
+                     [(ngModel)]="model.ipNetwork"
+                     #hostname="ngModel"
+                     name="hostname" placeholder="192.168.1.0/24"/>
+              <clr-control-error *clrIfError="'required'">Network is required.
+              </clr-control-error>
+              <clr-control-error *clrIfError="'IsValidNetwork'">Network is in wrong format.
+              </clr-control-error>
+            </clr-input-container>
+          </div>
+
+
+        </div>
+        <div class="card-footer">
+        <button type="submit" [clrLoading]="submitBtnState"
+                class="btn btn-sm btn-primary"
+                [disabled]="form.form.invalid">add network</button>
+
+        <button class="btn btn-sm btn-link" type="button" (click)="onAbort()">abort</button>
+      </div>
+      </div>
+    </div>
+  </div>
+</form>

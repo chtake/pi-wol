@@ -1,0 +1,99 @@
+<clr-alert [clrAlertType]="notification.type" [hidden]="!notification.message">
+  <div class="alert-item" clr-alert-item>
+        <span class="alert-text">
+            {{notification.message}}
+        </span>
+  </div>
+</clr-alert>
+
+<h2 *ngIf="state === 'add'">Add host</h2>
+<h2 *ngIf="state === 'update'">Update host</h2>
+
+<form clrForm (ngSubmit)="onSubmit()" #form="ngForm">
+  <div class="clr-row">
+    <div class="clr-col-lg-12 clr-col-md-12 clr-col-12">
+      <div class="card">
+        <div class="card-header">Host</div>
+        <div class="card-block">
+          <div class="card-text">
+
+            <clr-input-container>
+              <label class="clr-col-12 clr-col-md-2">(Host-)Name</label>
+              <input class="clr-col-12 clr-col-md-10" clrInput type="text"
+                     required
+                     pattern="[\d\w-.@]*"
+                     [(ngModel)]="model.hostname"
+                     #hostname="ngModel"
+                     [ngModelOptions]="{updateOn: 'blur'}"
+                     name="hostname" placeholder="mynas"/>
+              <clr-control-error *clrIfError="'pattern'">Only characters, numbers, '.' and '-' are allowed.
+              </clr-control-error>
+              <clr-control-error *clrIfError="'required'">Hostname is required.
+              </clr-control-error>
+            </clr-input-container>
+
+            <clr-input-container>
+              <label class="clr-col-12 clr-col-md-2">IP Address</label>
+              <input class="clr-col-12 clr-col-md-10" clrInput
+                     appIsValidIpAddr
+                     required
+                     [(ngModel)]="model.ipAddress"
+                     [ngModelOptions]="{updateOn: 'blur'}"
+                     (ngModelChange)="ipAddressChanged($event)"
+                     #ipAddr="ngModel"
+                     type="text" name="ipAddr" placeholder="192.168.1.100"/>
+              <clr-control-error *clrIfError="'required'">An ip address is required.
+              </clr-control-error>
+              <clr-control-error *clrIfError="'IsValidIpAddr'">An valid ip v4 address is required.
+              </clr-control-error>
+            </clr-input-container>
+
+            <clr-input-container>
+              <label class="clr-col-12 clr-col-md-2">Netmask</label>
+              <input class="clr-col-12 clr-col-md-10" clrInput
+                     appIsValidNetmaskAddr
+                     required
+                     [(ngModel)]="model.netmask"
+                     [ngModelOptions]="{updateOn: 'blur'}"
+                     #netmask="ngModel"
+                     type="text" name="netmask" placeholder="255.255.255.0"/>
+              <clr-control-error *clrIfError="'required'">A netmask is required.
+              </clr-control-error>
+              <clr-control-error *clrIfError="'IsValidNetmaskAddr'">A valid netmask is required.
+              </clr-control-error>
+            </clr-input-container>
+
+            <clr-input-container>
+              <label class="clr-col-12 clr-col-md-2">Mac Address</label>
+              <input class="clr-col-12 clr-col-md-10" clrInput type="text" name="macAddr"
+                     required
+                     appIsValidMacAddr
+                     [(ngModel)]="model.macAddress"
+                     #macAddr="ngModel"
+                     placeholder="00:00:00:00:00:00"/>
+              <clr-control-error *clrIfError="'required'">A mac address is required.
+              </clr-control-error>
+              <clr-control-error *clrIfError="'IsValidMacAddr'">A valid mac address is required.
+              </clr-control-error>
+            </clr-input-container>
+
+          </div>
+        </div>
+
+        <div class="card-footer">
+          <button type="submit" [clrLoading]="submitBtnState"
+                  class="btn btn-sm btn-primary"
+                  *ngIf="state === 'add'" [disabled]="form.form.invalid">add host
+          </button>
+
+          <button type="submit" [clrLoading]="submitBtnState"
+                  class="btn btn-sm btn-primary"
+                  *ngIf="state === 'update'" [disabled]="form.form.invalid">update host
+          </button>
+
+          <button class="btn btn-sm btn-link" type="button" (click)="onAbort()">abort</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</form>
