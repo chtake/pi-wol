@@ -1,0 +1,12 @@
+version: '3.1'
+
+services:
+  webapp:
+    image: chtake/pi-wol:latest
+    environment: 
+      - ASPNETCORE_ENVIRONMENT=Production
+      - ASPNETCORE_URLS=http://+:8080
+    restart: always
+    volumes:
+      - /srv/docker/pi-wol/data:/app/data
+    network_mode: "host"

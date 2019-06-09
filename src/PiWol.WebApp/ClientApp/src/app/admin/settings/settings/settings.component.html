@@ -1,0 +1,56 @@
+<clr-alert [clrAlertType]="notification.type" [hidden]="!notification.message">
+  <div class="alert-item" clr-alert-item>
+        <span class="alert-text">
+            {{notification.message}}
+        </span>
+  </div>
+</clr-alert>
+<h2>Settings</h2>
+
+<div class="clr-row">
+  <div class="clr-col-lg-12 clr-col-xl-12 clr-col-md-12 clr-col-12">
+    <div class="card">
+      <div class="card-header">
+        Restrict access by ip address
+      </div>
+      <div class="card-block">
+        <div class="card-text">
+          <table class="table">
+            <thead>
+            <tr>
+              <th class="left">IP Network</th>
+              <th></th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr *ngFor="let ipNetwork of ipAccessModels">
+              <td class="left">{{ipNetwork.ipNetwork}}</td>
+              <td>
+                <a class="btn btn-warning btn-sm btn-icon" (click)="onDelete(ipNetwork)">
+                  <clr-icon shape="times"></clr-icon>
+                </a>
+              </td>
+            </tr>
+            </tbody>
+          </table>
+
+        </div>
+      </div>
+      <div class="card-footer">
+        <button class="btn btn-primary btn-sm" [routerLink]="['/admin', 'settings', 'access', 'add']">Add ip</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+<clr-modal [(clrModalOpen)]="deletionModal.open">
+  <h3 class="modal-title">Confirm</h3>
+  <div class="modal-body">
+    <p>Decline access for network <b>{{deletionModal.model.ipNetwork}}</b>?</p>
+  </div>
+  <div class="modal-footer">
+    <button type="button" class="btn btn-outline" (click)="deletionModal.open = false">Cancel</button>
+    <button type="button" class="btn btn-danger" (click)="onDeleteConfirm()">Delete</button>
+  </div>
+</clr-modal>

@@ -1,0 +1,57 @@
+version: '#{build}'
+image: 
+  - Ubuntu1804
+init:
+  - git config --global core.autocrlf input
+  - sh: |
+      mkdir ~/.docker
+      echo "{ \"experimental\": \"enabled\" }" > ~/.docker/config.json
+      cat ~/.docker/config.json
+  - sh: dotnet tool install GitVersion.Tool --version 4.0.1-beta1-53 --global
+stack: node 8
+
+install:
+  - sh: chmod +x buildscript/build.sh
+
+environment:
+  IS_CI_BUILD: true
+  DOCKER_CI_USER:
+    secure: 12oDQF2cCY1ti+AjmwopSA==
+  DOCKER_CI_PASSWORD:
+    secure: uMe6MgbnQrXPleWxkBEAOzwZL1YIKKiYsPi3kxFndYM=
+  DOCKER_REPO: chtake/pi-wol
+
+build_script:
+  - sh: ./buildscript/build.sh build
+
+test_script:
+  - sh: ./buildscript/build.sh test
+
+artifacts:
+  - path: artifact-amd64.zip
+    name: pi-wol-amd64
+  - path: artifact-arm.zip
+    name: pi-wol-arm
+
+before_deploy:
+  - sh: docker login -u ${DOCKER_CI_USER} -p ${DOCKER_CI_PASSWORD}
+
+on_finish:
+  - sh: find "${APPVEYOR_BUILD_FOLDER}/test-results" -type f -name '*.trx' -print0
+  - sh: echo ${APPVEYOR_JOB_ID}
+  - sh: |
+      find "${APPVEYOR_BUILD_FOLDER}/test-results" -type f -name '*.trx' -print0 | xargs -0 -I '{}' curl -F 'file=@{}' "https://ci.appveyor.com/api/testresults/mstest/$APPVEYOR_JOB_ID"
+
+for:
+-
+  branches:
+    only:
+      - develop
+  deploy_script:
+      - sh: ./buildscript/build.sh deploy_develop
+-
+  branches:
+    only:
+      - master
+  deploy_script:
+    - sh: ./buildscript/build.sh deploy_release

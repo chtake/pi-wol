@@ -1,0 +1,21 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>netcoreapp2.2</TargetFramework>
+
+    <IsPackable>false</IsPackable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="FakeItEasy" Version="5.1.1" />
+    <PackageReference Include="nunit" Version="3.11.0" />
+    <PackageReference Include="NUnit3TestAdapter" Version="3.13.0" />
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="16.0.1" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\PiWol.WakeOnLanService.Abstraction\PiWol.WakeOnLanService.Abstraction.csproj" />
+    <ProjectReference Include="..\..\src\PiWol.WakeOnLanService.Infrastructure.Network\PiWol.WakeOnLanService.Infrastructure.Network.csproj" />
+  </ItemGroup>
+
+</Project>
