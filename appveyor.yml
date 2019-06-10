@@ -6,7 +6,6 @@ init:
   - sh: |
       mkdir ~/.docker
       echo "{ \"experimental\": \"enabled\" }" > ~/.docker/config.json
-      cat ~/.docker/config.json
   - sh: dotnet tool install GitVersion.Tool --version 4.0.1-beta1-53 --global
 stack: node 8
 
@@ -28,17 +27,13 @@ test_script:
   - sh: ./buildscript/build.sh test
 
 artifacts:
-  - path: artifact-amd64.zip
-    name: pi-wol-amd64
-  - path: artifact-arm.zip
-    name: pi-wol-arm
+  - path: 'artifacts/*.zip'
 
 before_deploy:
   - sh: docker login -u ${DOCKER_CI_USER} -p ${DOCKER_CI_PASSWORD}
 
 on_finish:
   - sh: find "${APPVEYOR_BUILD_FOLDER}/test-results" -type f -name '*.trx' -print0
-  - sh: echo ${APPVEYOR_JOB_ID}
   - sh: |
       find "${APPVEYOR_BUILD_FOLDER}/test-results" -type f -name '*.trx' -print0 | xargs -0 -I '{}' curl -F 'file=@{}' "https://ci.appveyor.com/api/testresults/mstest/$APPVEYOR_JOB_ID"
 
@@ -53,5 +48,15 @@ for:
   branches:
     only:
       - master
-  deploy_script:
+  deploy:
+    - provider: GitHub
+      artifact: /.*\.zip/
+      draft: false
+      prerelease: false
+      auth_token:
+        secure: /PZkTn2CQdH7/VP7FCGoOlgw1wjbCzyxhjAiEh6ijhY9cxmG3ShGt/b9MQ53l+FH
+      on:
+        APPVEYOR_REPO_TAG: true
+  before_deploy:
+    - sh: docker login -u ${DOCKER_CI_USER} -p ${DOCKER_CI_PASSWORD}
     - sh: ./buildscript/build.sh deploy_release
