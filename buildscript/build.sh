@@ -48,9 +48,9 @@ function build {
 
     if [ -n "${IS_CI_BUILD}" ]
     then
-        7z a artifact-${runtime_short}.zip ${base_dir}/publish-${runtime_short}/*
+        7z a artifacts/piwol-${APP_VERSION}-${runtime_short}.zip ${base_dir}/publish-${runtime_short}/*
     else
-        tar -cf artifact-${runtime_short}.tar publish-${runtime_short}/*
+        tar -cf artifacts/piwol-${APP_VERSION}-${runtime_short}.tar publish-${runtime_short}/*
     fi
 }
 
