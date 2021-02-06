@@ -34,11 +34,11 @@ namespace PiWol.WakeOnLanService.Infrastructure.Network.Services
                 RedirectStandardError = true
             };
 
-            using (var proc = new Process { StartInfo = psi })
+            using (var proc = new Process {StartInfo = psi})
             {
                 proc.Start();
 
-                proc.WaitForExit();
+                await proc.WaitForExitAsync();
 
                 var text = proc.StandardOutput.ReadToEnd();
 
@@ -46,7 +46,7 @@ namespace PiWol.WakeOnLanService.Infrastructure.Network.Services
 
                 if (match.Success)
                 {
-                    return match.Groups.FirstOrDefault()?.Value;
+                    return match.Groups.Values.FirstOrDefault()?.Value;
                 }
             }
 
