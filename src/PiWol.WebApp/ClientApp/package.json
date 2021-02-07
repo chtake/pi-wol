@@ -33,7 +33,7 @@
     "core-js": "^3.8.3",
     "fsevents": "^2.3.2",
     "node-sass": "^5.0.0",
-    "popper.js": "^1.14.3",
+    "popper.js": "^1.16.1",
     "protractor": "~7.0.0",
     "rxjs": "^6.6.3",
     "ts-node": "~9.1.1",
