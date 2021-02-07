@@ -5,10 +5,10 @@ using System.Linq;
 using System.Reflection;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
-using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.FileProviders;
+using Microsoft.Extensions.Hosting;
 using PiWol.Core;
 
 namespace PiWol.WebApp
@@ -31,8 +31,7 @@ namespace PiWol.WebApp
             services.AddSingleton<IFileProvider>(physicalProvider);
 
             var serviceAssemblies = LoadWebAppAssemblies().ToList();
-            var mvcBuilder = services.AddMvc().SetCompatibilityVersion(CompatibilityVersion.Version_2_2);
-
+            var mvcBuilder = services.AddControllersWithViews();
 
             foreach (var assembly in serviceAssemblies)
             {
@@ -61,7 +60,7 @@ namespace PiWol.WebApp
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
-        public void Configure(IApplicationBuilder app, IHostingEnvironment env)
+        public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
         {
             if (env.IsDevelopment())
             {
@@ -80,16 +79,20 @@ namespace PiWol.WebApp
             {
                 app.UseExceptionHandler("/Error");
             }
+            
+            app.UseStaticFiles();
+            app.UseSpaStaticFiles();
 
+            app.UseRouting();
+            
             foreach (var startupService in _startupServices)
             {
                 startupService.ConfigureApplication(app);
             }
 
-            app.UseStaticFiles();
-            app.UseSpaStaticFiles();
+            app.UseEndpoints(routes => { routes.MapControllerRoute(
+                "default", "{controller}/{action=Index}/{id?}"); });
 
-            app.UseMvc(routes => { routes.MapRoute(name: "default", template: "{controller}/{action=Index}/{id?}"); });
 
             if (env.IsDevelopment() == false)
             {

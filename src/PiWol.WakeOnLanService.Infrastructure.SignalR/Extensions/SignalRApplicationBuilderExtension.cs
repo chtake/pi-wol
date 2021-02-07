@@ -7,8 +7,10 @@ namespace PiWol.WakeOnLanService.Infrastructure.SignalR.Extensions
     {
         public static IApplicationBuilder UseEventHub(this IApplicationBuilder app)
         {
-            app.UseSignalR(routes => { routes.MapHub<HostStatusHub>("/api/wol/hub/host-status"); });
-
+            app.UseEndpoints(endpoints =>
+            {
+                endpoints.MapHub<HostStatusHub>("/api/wol/hub/host-status");
+            });
             return app;
         }
     }
