@@ -1,13 +1,13 @@
 version: '#{build}'
 image: 
-  - Ubuntu1804
+  - Ubuntu2004
 init:
   - git config --global core.autocrlf input
   - sh: |
       mkdir ~/.docker
       echo "{ \"experimental\": \"enabled\" }" > ~/.docker/config.json
   - sh: dotnet tool install GitVersion.Tool --version 4.0.1-beta1-53 --global
-stack: node 8
+stack: node 15
 
 install:
   - sh: chmod +x buildscript/build.sh
