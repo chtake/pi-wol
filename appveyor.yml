@@ -6,7 +6,7 @@ init:
   - sh: |
       mkdir ~/.docker
       echo "{ \"experimental\": \"enabled\" }" > ~/.docker/config.json
-  - sh: dotnet tool install GitVersion.Tool --version 4.0.1-beta1-53 --global
+  - sh: dotnet tool install --global GitVersion.Tool --version 5.6.4
 stack: node 15
 
 install:
