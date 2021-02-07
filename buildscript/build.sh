@@ -42,6 +42,10 @@ function build {
 
     dotnet restore
     dotnet publish ${base_dir}/src/PiWol.WebApp/PiWol.WebApp.csproj -c release -r ${runtime} -o ${base_dir}/publish-${runtime_short}/publish
+
+    status=$?
+    [ $status -eq 0 ] || exit 1
+
     cp Dockerfiles/Dockerfile_${runtime_short} ${base_dir}/publish-${runtime_short}/Dockerfile
     cp README.md ${base_dir}/publish-${runtime_short}/
     cp docker-compose.yml ${base_dir}/publish-${runtime_short}/
