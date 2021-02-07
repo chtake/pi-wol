@@ -17,7 +17,7 @@
     "@angular/compiler": "11.1.2",
     "@angular/core": "11.1.2",
     "@angular/forms": "11.1.2",
-    "@angular/http": "6.1.10",
+    "@angular/http": "7.2.16",
     "@angular/platform-browser": "11.1.2",
     "@angular/platform-browser-dynamic": "11.1.2",
     "@angular/platform-server": "11.1.2",
