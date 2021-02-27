@@ -15,7 +15,7 @@ import {SharedModule} from '../shared/shared.module';
   declarations: [AdminComponent, HeaderComponent]
 })
 export class AdminModule {
-  static forRoot(): ModuleWithProviders {
+  static forRoot(): ModuleWithProviders<any> {
     return {
       ngModule: AdminModule,
        providers: []
