@@ -54,7 +54,7 @@ for:
       draft: false
       prerelease: false
       auth_token:
-        secure: /PZkTn2CQdH7/VP7FCGoOlgw1wjbCzyxhjAiEh6ijhY9cxmG3ShGt/b9MQ53l+FH
+        secure: DP0SA4jTvTlDok+oGUpw4OhXnnIGrk8+tMWAp9w+oBEXG9u1wWWV7S+DwGBxOjXF
       on:
         APPVEYOR_REPO_TAG: true
   before_deploy:
