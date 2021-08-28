@@ -26,7 +26,7 @@
     "@cds/core": "^5.0.1",
     "@clr/angular": "^5.4.0",
     "@clr/icons": "^5.0.2",
-    "@clr/ui": "^5.0.2",
+    "@clr/ui": "^5.4.1",
     "@nguniversal/module-map-ngfactory-loader": "8.2.6",
     "@webcomponents/custom-elements": "^1.5.0",
     "@webcomponents/webcomponentsjs": "^2.6.0",
