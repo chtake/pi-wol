@@ -32,7 +32,7 @@
     "@webcomponents/webcomponentsjs": "^2.5.0",
     "core-js": "^3.16.3",
     "fsevents": "^2.3.2",
-    "node-sass": "^5.0.0",
+    "node-sass": "^6.0.1",
     "popper.js": "^1.16.1",
     "protractor": "~7.0.0",
     "rxjs": "^6.6.6",
@@ -60,7 +60,7 @@
   },
   "optionalDependencies": {
     "fsevents": "^2.3.2",
-    "node-sass": "^5.0.0",
+    "node-sass": "^6.0.1",
     "protractor": "~7.0.0",
     "ts-node": "~9.1.1",
     "tslint": "~6.1.3"
