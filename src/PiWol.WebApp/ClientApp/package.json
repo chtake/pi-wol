@@ -28,7 +28,7 @@
     "@clr/icons": "^5.0.2",
     "@clr/ui": "^5.0.2",
     "@nguniversal/module-map-ngfactory-loader": "8.2.6",
-    "@webcomponents/custom-elements": "^1.4.3",
+    "@webcomponents/custom-elements": "^1.5.0",
     "@webcomponents/webcomponentsjs": "^2.6.0",
     "core-js": "^3.16.3",
     "fsevents": "^2.3.2",
