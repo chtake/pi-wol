@@ -1,4 +1,5 @@
-FROM mcr.microsoft.com/dotnet/core/runtime:2.2-bionic
+FROM --platform=${TARGETPLATFORM} mcr.microsoft.com/dotnet/aspnet:5.0.9-buster-slim
+ARG TARGETARCH
 
 RUN apt-get update -y && \
     apt-get upgrade -y && \
@@ -7,7 +8,8 @@ RUN apt-get update -y && \
     rm -rf /var/lib/apt/lists/*
 
 WORKDIR /app
-COPY publish .
+
+COPY ./publish-${TARGETARCH} .
 
 VOLUME ["/app/data"]
 EXPOSE 80/tcp

@@ -1,0 +1,302 @@
+name: "Build and Deploy"
+on:
+  push:
+    branches:
+      - develop
+      - master
+  workflow_dispatch:
+  workflow_run:
+    workflows: [ "Dependabot push check" ]
+    types:
+      - completed
+  release:
+    types:
+      - created
+
+env:
+  REGISTRY: ghcr.io
+  IMAGE_NAME: ${{ github.repository }}
+
+jobs:
+  
+  prepare:
+    runs-on: ubuntu-latest
+    if: ${{ github.event_name == 'workflow_dispatch' || github.event_name == 'release' || (github.event_name == 'push' && github.actor != 'dependabot[bot]') || ( github.event_name == 'workflow_run' && github.event.workflow_run.conclusion == 'success' && github.actor == 'dependabot[bot]' ) }}
+    permissions:
+      contents: read
+      packages: read
+
+    outputs:
+      DATE: ${{ steps.version.outputs.DATE }}
+      APP_VERSION: ${{ steps.version.outputs.APP_VERSION }}
+      BUILD_DATE: ${{ steps.version.outputs.BUILD_DATE }}
+      BUILD_VERSION: ${{ steps.version.outputs.BUILD_VERSION }}
+      SHORT_REF: ${{ steps.version.outputs.SHORT_REF }}
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+
+      - name: Install GitVersion
+        uses: gittools/actions/gitversion/setup@v0.9.7
+        with:
+          versionSpec: '5.x'
+
+      - name: Create version informations
+        id: version
+        run: |
+          date_formatted=$(date +'%Y%m%d%H%M%S')
+          build_date=$(date '+%Y-%m-%d %H:%M:%S')
+          app_version=`dotnet-gitversion /output json /showvariable NuGetVersion`
+          echo "::set-output name=DATE::${date_formatted}"
+          echo "::set-output name=APP_VERSION::${app_version}"
+          echo "::set-output name=BUILD_DATE::${build_date}"
+          echo "::set-output name=BUILD_VERSION::${app_version}-${GITHUB_RUN_NUMBER}.${GITHUB_SHA:0:8}"
+          echo "::set-output name=SHORT_REF::${GITHUB_REF#refs/*/}"
+
+  build-amd64:
+    runs-on: ubuntu-latest
+    needs: prepare
+
+    permissions:
+      contents: read
+      packages: write
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v2
+
+      - uses: actions/setup-dotnet@v1
+        with:
+          dotnet-version: '5.0.x'
+      - uses: actions/setup-node@v2
+        with:
+          node-version: '15'
+
+      - name: "restore packages"
+        run: dotnet restore
+
+      - name: "patching version.ts"
+        run: |
+          echo "Patching version.ts -- export const version = { version: '${{ needs.prepare.outputs.BUILD_VERSION }}', buildDate: '${{ needs.prepare.outputs.BUILD_DATE }}' };" 
+          echo "export const version = { version: '${{ needs.prepare.outputs.BUILD_VERSION }}', buildDate: '${{ needs.prepare.outputs.BUILD_DATE }}' };" \
+              > ./src/PiWol.WebApp/ClientApp/src/app/version.ts
+
+      - name: "build amd64"
+        run: |
+          dotnet publish src/PiWol.WebApp/PiWol.WebApp.csproj -c release -r linux-x64 -o ./publish-amd64/publish
+
+      - name: "copy files"
+        run: |
+          cp Dockerfiles/Dockerfile ./publish-amd64/Dockerfile
+          cp README.md ./publish-amd64/
+          cp docker-compose.yml ./publish-amd64/
+
+      - name: "create artifacts directory"
+        run: |
+          mkdir ./artifacts
+
+      - uses: edgarrc/action-7z@v1
+        with:
+          args: 7z a -t7z -mx=9 artifacts/piwol-${{ needs.prepare.outputs.APP_VERSION }}-amd64.zip ./publish-amd64/publish/*
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v2
+        with:
+          name: piwol-${{ needs.prepare.outputs.APP_VERSION }}-amd64
+          retention-days: 1
+          path: |
+            artifacts/piwol-${{ needs.prepare.outputs.APP_VERSION }}-amd64.zip
+            ./publish-amd64
+
+  build-arm:
+    runs-on: ubuntu-latest
+    needs: prepare
+
+    permissions:
+      contents: read
+      packages: write
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v2
+
+      - uses: actions/setup-dotnet@v1
+        with:
+          dotnet-version: '5.0.x'
+      - uses: actions/setup-node@v2
+        with:
+          node-version: '15'
+
+      - name: "restore packages"
+        run: dotnet restore
+
+      - name: "patching version.ts"
+        run: |
+          echo "Patching version.ts -- export const version = { version: '${{ needs.prepare.outputs.BUILD_VERSION}}', buildDate: '${{ needs.prepare.outputs.BUILD_DATE}}' };" 
+          echo "export const version = { version: '${{ needs.prepare.outputs.BUILD_VERSION}}', buildDate: '${{ needs.prepare.outputs.BUILD_DATE}}' };" \
+              > ./src/PiWol.WebApp/ClientApp/src/app/version.ts
+
+      - name: "build arm"
+        run: |
+          dotnet publish src/PiWol.WebApp/PiWol.WebApp.csproj -c release -r linux-arm -o ./publish-arm/publish
+
+      - name: "copy files"
+        run: |
+          cp Dockerfiles/Dockerfile ./publish-arm/Dockerfile
+          cp README.md ./publish-arm/
+          cp docker-compose.yml ./publish-arm/
+
+      - name: "create artifacts directory"
+        run: |
+          mkdir ./artifacts
+
+      - uses: edgarrc/action-7z@v1
+        with:
+          args: 7z a -t7z -mx=9 artifacts/piwol-${{ needs.prepare.outputs.APP_VERSION }}-arm.zip ./publish-arm/publish/*
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v2
+        with:
+          name: piwol-${{ needs.prepare.outputs.APP_VERSION }}-arm
+          retention-days: 1
+          path: |
+            artifacts/piwol-${{ needs.prepare.outputs.APP_VERSION }}-arm.zip
+            ./publish-arm
+
+  test-amd64:
+    runs-on: ubuntu-latest
+    needs: [ prepare, build-arm, build-amd64 ]
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v2
+
+      - uses: actions/setup-dotnet@v1
+        with:
+          dotnet-version: '5.0.x'
+      - uses: actions/setup-node@v2
+        with:
+          node-version: '15'
+
+      - name: "restore packages"
+        run: dotnet restore
+
+      - name: "patching version.ts"
+        run: |
+          echo "Patching version.ts -- export const version = { version: '${{ needs.prepare.outputs.BUILD_VERSION }}', buildDate: '${{ needs.prepare.outputs.BUILD_DATE }}' };" 
+          echo "export const version = { version: '${{ needs.prepare.outputs.BUILD_VERSION }}', buildDate: '${{ needs.prepare.outputs.BUILD_DATE }}' };" \
+              > ./src/PiWol.WebApp/ClientApp/src/app/version.ts
+
+      - name: "test amd64"
+        run: |
+          dotnet test -r ./test-results --logger:trx
+
+      - name: Parse Trx files
+        uses: NasAmin/trx-parser@v0.2.0
+        id: trx-parser
+        with:
+          TRX_PATH: ${{ github.workspace }}/test-results
+          REPO_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  deploy:
+    runs-on: ubuntu-latest
+    needs: [ prepare, build-arm, build-amd64, test-amd64 ]
+    permissions:
+      contents: read
+      packages: write
+
+    steps:
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v1
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v1
+
+      - name: Login to DockerHub
+        uses: docker/login-action@v1
+        with:
+          username: ${{ secrets.DOCKER_HUB_USER }}
+          password: ${{ secrets.DOCKER_HUB_TOKEN }}
+
+      - name: Log in to GitHub Container registry
+        uses: docker/login-action@v1.10.0
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Extract metadata (tags, labels) for Docker
+        id: meta
+        uses: docker/metadata-action@v3.3.0
+        with:
+          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
+
+      - name: Download artifact
+        uses: actions/download-artifact@v2
+        with:
+          name: piwol-${{ needs.prepare.outputs.APP_VERSION }}-arm
+
+      - name: Download artifact
+        uses: actions/download-artifact@v2
+        with:
+          name: piwol-${{ needs.prepare.outputs.APP_VERSION }}-amd64
+
+      - run: |
+          mkdir docker-build
+          cp -r publish-amd64 docker-build/publish-amd64
+          cp publish-amd64/Dockerfile docker-build
+          cp -r publish-arm docker-build/publish-arm
+
+      - name: Build and push development stage
+        if: ${{ github.event_name != 'release' }}
+        uses: docker/build-push-action@v2
+        with:
+          file: ./docker-build/Dockerfile
+          context: docker-build/
+          push: true
+          tags: |
+            ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ needs.prepare.outputs.SHORT_REF }}-latest
+            ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ needs.prepare.outputs.SHORT_REF }}-${{ needs.prepare.outputs.APP_VERSION }}
+            chtake/pi-wol:${{ needs.prepare.outputs.SHORT_REF }}-latest
+            chtake/pi-wol:${{ needs.prepare.outputs.SHORT_REF }}-${{ needs.prepare.outputs.APP_VERSION }}
+          labels: ${{ steps.meta.outputs.labels }}
+          platforms: linux/amd64,linux/arm
+
+      - name: Build and push release
+        if: ${{ github.event_name == 'release' }}
+        uses: docker/build-push-action@v2
+        with:
+          file: ./docker-build/Dockerfile
+          context: docker-build/
+          push: true
+          tags: |
+            ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest
+            ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ needs.prepare.outputs.APP_VERSION }}  
+            chtake/pi-wol:latest
+            chtake/pi-wol:${{ needs.prepare.outputs.APP_VERSION }}            
+          labels: ${{ steps.meta.outputs.labels }}
+          platforms: linux/amd64,linux/arm
+
+  upload-gh-release:
+    if: ${{ github.event_name == 'release' }}
+    runs-on: ubuntu-latest
+    needs: [ prepare, deploy ]
+    
+    steps:
+      - name: Download artifact
+        uses: actions/download-artifact@v2
+        with:
+          name: piwol-${{ needs.prepare.outputs.APP_VERSION }}-arm
+  
+      - name: Download artifact
+        uses: actions/download-artifact@v2
+        with:
+          name: piwol-${{ needs.prepare.outputs.APP_VERSION }}-amd64
+          
+      - uses: ncipollo/release-action@v1
+        with:
+          allowUpdates: true
+          artifacts: "artifacts/*.zip"
+          token: ${{ secrets.GITHUB_TOKEN }}
