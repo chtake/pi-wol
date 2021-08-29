@@ -9,7 +9,7 @@ RUN apt-get update -y && \
 
 WORKDIR /app
 
-COPY ./publish-${TARGETARCH} .
+COPY ./publish-${TARGETARCH}/publish .
 
 VOLUME ["/app/data"]
 EXPOSE 80/tcp
