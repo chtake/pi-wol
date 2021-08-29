@@ -166,9 +166,64 @@ jobs:
             artifacts/piwol-${{ needs.prepare.outputs.APP_VERSION }}-arm.zip
             ./publish-arm
 
+  build-arm64:
+    runs-on: ubuntu-latest
+    needs: prepare
+
+    permissions:
+      contents: read
+      packages: write
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v2
+
+      - uses: actions/setup-dotnet@v1
+        with:
+          dotnet-version: '5.0.x'
+      - uses: actions/setup-node@v2
+        with:
+          node-version: '15'
+
+      - name: "restore packages"
+        run: dotnet restore
+
+      - name: "patching version.ts"
+        run: |
+          echo "Patching version.ts -- export const version = { version: '${{ needs.prepare.outputs.BUILD_VERSION}}', buildDate: '${{ needs.prepare.outputs.BUILD_DATE}}' };" 
+          echo "export const version = { version: '${{ needs.prepare.outputs.BUILD_VERSION}}', buildDate: '${{ needs.prepare.outputs.BUILD_DATE}}' };" \
+              > ./src/PiWol.WebApp/ClientApp/src/app/version.ts
+
+      - name: "build arm"
+        run: |
+          dotnet publish src/PiWol.WebApp/PiWol.WebApp.csproj -c release -r linux-arm64 -o ./publish-arm64/publish
+
+      - name: "copy files"
+        run: |
+          cp Dockerfiles/Dockerfile ./publish-arm64/Dockerfile
+          cp README.md ./publish-arm64/
+          cp docker-compose.yml ./publish-arm64/
+
+      - name: "create artifacts directory"
+        run: |
+          mkdir ./artifacts
+
+      - uses: edgarrc/action-7z@v1
+        with:
+          args: 7z a -t7z -mx=9 artifacts/piwol-${{ needs.prepare.outputs.APP_VERSION }}-arm64.zip ./publish-arm64/publish/*
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v2
+        with:
+          name: piwol-${{ needs.prepare.outputs.APP_VERSION }}-arm64
+          retention-days: 1
+          path: |
+            artifacts/piwol-${{ needs.prepare.outputs.APP_VERSION }}-arm64.zip
+            ./publish-arm64
+
   test-amd64:
     runs-on: ubuntu-latest
-    needs: [ prepare, build-arm, build-amd64 ]
+    needs: [ prepare, build-arm, build-arm64, build-amd64 ]
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v2
@@ -202,7 +257,7 @@ jobs:
 
   deploy:
     runs-on: ubuntu-latest
-    needs: [ prepare, build-arm, build-amd64, test-amd64 ]
+    needs: [ prepare, build-arm, build-arm64, build-amd64, test-amd64 ]
     permissions:
       contents: read
       packages: write
@@ -241,6 +296,11 @@ jobs:
       - name: Download artifact
         uses: actions/download-artifact@v2
         with:
+          name: piwol-${{ needs.prepare.outputs.APP_VERSION }}-arm64
+
+      - name: Download artifact
+        uses: actions/download-artifact@v2
+        with:
           name: piwol-${{ needs.prepare.outputs.APP_VERSION }}-amd64
 
       - run: |
@@ -248,6 +308,7 @@ jobs:
           cp -r publish-amd64 docker-build/publish-amd64
           cp publish-amd64/Dockerfile docker-build
           cp -r publish-arm docker-build/publish-arm
+          cp -r publish-arm64 docker-build/publish-arm64
 
       - name: Build and push development stage
         if: ${{ github.event_name != 'release' }}
@@ -262,7 +323,7 @@ jobs:
             chtake/pi-wol:${{ needs.prepare.outputs.SHORT_REF }}-latest
             chtake/pi-wol:${{ needs.prepare.outputs.SHORT_REF }}-${{ needs.prepare.outputs.APP_VERSION }}
           labels: ${{ steps.meta.outputs.labels }}
-          platforms: linux/amd64,linux/arm
+          platforms: linux/amd64,linux/arm,linux/arm64
 
       - name: Build and push release
         if: ${{ github.event_name == 'release' }}
