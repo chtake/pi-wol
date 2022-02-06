@@ -4,6 +4,10 @@ updates:
     directory: "/src/PiWol.WebApp/ClientApp"
     schedule:
       interval: "daily"
+  - package-ecosystem: "npm"
+    directory: "/tools/license-extractor"
+    schedule:
+      interval: "daily"
   - package-ecosystem: "nuget"
     directory: "/"
     schedule:
