@@ -30,7 +30,7 @@
     "@nguniversal/module-map-ngfactory-loader": "8.2.6",
     "@webcomponents/custom-elements": "^1.5.0",
     "@webcomponents/webcomponentsjs": "^2.6.0",
-    "core-js": "^3.25.1",
+    "core-js": "^3.25.2",
     "fsevents": "^2.3.2",
     "node-sass": "^7.0.3",
     "popper.js": "^1.16.1",
