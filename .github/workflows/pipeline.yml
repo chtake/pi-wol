@@ -338,7 +338,7 @@ jobs:
             chtake/pi-wol:latest
             chtake/pi-wol:${{ needs.prepare.outputs.APP_VERSION }}            
           labels: ${{ steps.meta.outputs.labels }}
-          platforms: linux/amd64,linux/arm
+          platforms: linux/amd64,linux/arm,linux/arm64
 
   upload-gh-release:
     if: ${{ github.event_name == 'release' }}
